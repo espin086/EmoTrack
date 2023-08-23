@@ -6,7 +6,7 @@ import numpy as np
 
 from logic.facial_analysis import detect_emotion
 
-EMOTIONS = ["happy", "sad", "neutral", "angry", "surprised"]
+
 BATCH_SIZE = 60
 
 
@@ -83,9 +83,10 @@ if st.session_state.running:
 
         frame_count += 1
 
-        if frame_count % 12 == 0:
+        if frame_count % 24 == 0:
             current_emotion = detect_emotion(frame)
-            emotions_batch.append((datetime.now().timestamp(), current_emotion))
+            if current_emotion != "NO FACE":
+                emotions_batch.append((datetime.now().timestamp(), current_emotion))
 
             if len(emotions_batch) == BATCH_SIZE:
                 save_emotions_batch(emotions_batch)

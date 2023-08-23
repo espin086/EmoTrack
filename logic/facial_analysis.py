@@ -18,4 +18,8 @@ def detect_emotion(frame):
         Image={"Bytes": image_bytes}, Attributes=["EMOTIONS"]
     )
 
+    # Check if any faces were detected
+    if not response["FaceDetails"]:
+        return "NO FACE"
+
     return response["FaceDetails"][0]["Emotions"][0]["Type"]
