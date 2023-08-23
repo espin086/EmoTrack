@@ -4,13 +4,10 @@ import sqlite3
 from datetime import datetime
 import numpy as np
 
+from logic.facial_analysis import detect_emotion
+
 EMOTIONS = ["happy", "sad", "neutral", "angry", "surprised"]
 BATCH_SIZE = 60
-
-
-# Mock function for emotion detection
-def detect_emotion(frame):
-    return np.random.choice(EMOTIONS)
 
 
 # Function to save a list of emotions to SQLite
@@ -86,7 +83,7 @@ if st.session_state.running:
 
         frame_count += 1
 
-        if frame_count % 24 == 0:
+        if frame_count % 12 == 0:
             current_emotion = detect_emotion(frame)
             emotions_batch.append((datetime.now().timestamp(), current_emotion))
 
