@@ -97,7 +97,7 @@ if menu == "Webcam Feed":
                 if current_emotion != "NO FACE":
                     emotions_batch.append(
                         (
-                            datetime.now().timestamp().replace(tzinfo=pytz.utc),
+                            datetime.now().timestamp(),
                             current_emotion,
                         )
                     )
