@@ -145,24 +145,63 @@ elif menu == "Display Graph":
         """
         df = pd.read_sql_query(query, conn)
 
-    # Ensure that data is not empty before plotting
-    if not df.empty:
-        # Seaborn plot
-        plt.figure(figsize=(14, 6))
-        hue_order = df["emotion"].unique().tolist()
-        sns.barplot(
-            data=df,
-            x="date",
-            y="emotion_count",
-            hue="emotion",
-            palette="deep",
-            hue_order=hue_order,
+    # Calculate the total counts for each date
+    total_counts = df.groupby("date")["emotion_count"].sum().reset_index()
+    total_counts.rename(columns={"emotion_count": "total_count"}, inplace=True)
+
+    # Merge the total counts back into the original dataframe
+    df = pd.merge(df, total_counts, on="date")
+
+    # Calculate the percentage for each emotion on each date
+    df["percentage"] = (df["emotion_count"] / df["total_count"]) * 100
+
+    # Initialize the figure and axis
+    fig, ax = plt.subplots(figsize=(14, 6))
+    bottom_values = {date: 0 for date in df["date"].unique()}
+
+    emotion_colors = {
+        "CALM": "#D3D3D3",
+        "SURPRISED": "#A9A9A9",
+        "CONFUSED": "#808080",
+        "HAPPY": "#696969",
+        "SAD": "#800000",
+        "ANGRY": "#8B0000",
+        "FEAR": "#A52A2A",
+    }
+
+    for emotion in df["emotion"].unique():
+        emotion_data = df[df["emotion"] == emotion].copy()
+        bottoms = [bottom_values.get(date, 0) for date in emotion_data["date"]]
+        bars = ax.bar(
+            emotion_data["date"],
+            emotion_data["percentage"],
+            bottom=bottoms,
+            color=emotion_colors.get(emotion, "white"),
         )
-        plt.title("Emotion Variation in the Past 7 Days")
-        plt.xticks(rotation=45)
-        # Display the plot using Streamlit
-        st.pyplot(plt)
-        st.write(df)
-    else:
-        st.write("No emotion data available for the past 7 days.")
-    conn.close()
+
+        for i, date in enumerate(emotion_data["date"]):
+            bottom_values[date] += emotion_data.iloc[i]["percentage"]
+
+        # Adding text labels
+        for bar, percentage in zip(bars, emotion_data["percentage"]):
+            height = bar.get_height()
+            position = bar.get_y()
+            if height > 0:
+                text_color = (
+                    "black"
+                    if emotion in ["CALM", "SURPRISED", "CONFUSED", "HAPPY"]
+                    else "white"
+                )
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    position + height / 2,
+                    emotion,
+                    ha="center",
+                    va="center",
+                    color=text_color,
+                )
+
+    ax.set_title("Emotion Variation in the Past 7 Days (100% Stacked)")
+    ax.set_xticklabels(df["date"].unique(), rotation=45)
+    plt.legend(df["emotion"].unique())
+    st.pyplot(fig)
