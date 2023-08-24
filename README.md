@@ -4,26 +4,16 @@ EmoTrack is a real-time emotion tracking application that utilizes facial recogn
 
 
 ## Features
-
-**Easy to use UI for starting and stoping your webcam**
-![EmoTrackArchitecture](./images/ui_start_cam.png)
-
 **Detects Emotions from Streaming Video**
 
 ![ui_happy](./images/ui_happy.png)
----
-
-![ui_angry](./images/ui_angry.png)
----
-
-![ui_surprised](./images/ui_surprised.png)
 ---
 
 
 
 **Daily graphs to spot trends in emotional states**
 
-![ui_surprised](./images/ui_metrics.png)
+![ui_new_metrics](./images/ui_new_metrics.png)
 
 ## How it Works
 ![EmoTrackArchitecture](./images/EmoTrackArchitecture.png)
