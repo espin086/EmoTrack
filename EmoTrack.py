@@ -2,6 +2,7 @@ import streamlit as st
 import cv2
 import sqlite3
 from datetime import datetime
+import pytz
 
 import pandas as pd
 import seaborn as sns
@@ -94,7 +95,12 @@ if menu == "Webcam Feed":
             if frame_count % 24 == 0:
                 current_emotion = detect_emotion(frame)
                 if current_emotion != "NO FACE":
-                    emotions_batch.append((datetime.now().timestamp(), current_emotion))
+                    emotions_batch.append(
+                        (
+                            datetime.now().timestamp().replace(tzinfo=pytz.utc),
+                            current_emotion,
+                        )
+                    )
 
                 if len(emotions_batch) == BATCH_SIZE:
                     save_emotions_batch(emotions_batch)
