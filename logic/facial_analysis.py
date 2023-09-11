@@ -1,11 +1,14 @@
+"""Facial analysis logic for the EmoTrack app."""
+
+
 import boto3
 import cv2
-import numpy as np
 
 client = boto3.client("rekognition")
 
 
 def detect_emotion(frame):
+    """Detects the emotion of a face in a frame."""
     # Encode the frame as JPG
     ret, jpg_data = cv2.imencode(".jpg", frame)
     if not ret:
