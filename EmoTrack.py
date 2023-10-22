@@ -1,3 +1,6 @@
+"""EmoTrack"""
+
+
 import streamlit as st
 import cv2
 import sqlite3
@@ -16,6 +19,7 @@ BATCH_SIZE = 60
 
 # Function to save a list of emotions to SQLite
 def save_emotions_batch(emotions_batch):
+    """Save a list of emotions to SQLite"""
     with sqlite3.connect("emotions.db") as conn:
         cursor = conn.cursor()
         cursor.executemany(
