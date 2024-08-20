@@ -3,6 +3,10 @@
 EmoTrack is a real-time emotion tracking application that utilizes facial recognition to capture emotions from a webcam feed. The application is built on Python using Streamlit for the frontend and SQLite for the backend storage. AWS Rekognition is used for emotion detection. This README provides setup instructions and information on how to run the application.
 
 
+<a href="https://buymeacoffee.com/jjespinozag" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174">
+</a>
+
 ## Features
 **Detects Emotions from Streaming Video**
 
