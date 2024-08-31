@@ -10,7 +10,6 @@ EmoTrack is a real-time emotion tracking application that utilizes facial recogn
 ## Features
 **Detects Emotions from Streaming Video**
 
-![ui_happy](./images/ui_happy.png)
 ---
 
 
