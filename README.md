@@ -16,7 +16,7 @@ EmoTrack is a real-time emotion tracking application that utilizes facial recogn
 
 **Daily graphs to spot trends in emotional states**
 
-![ui_new_metrics](./images/ui_new_metrics.png)
+![ui_new_metrics](./images/ui_metrics.png)
 
 ## How it Works
 ![EmoTrackArchitecture](./images/EmoTrackArchitecture.png)
