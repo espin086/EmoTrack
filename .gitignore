@@ -7,6 +7,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Environment variables
+.env
+
+# Data directory
+data/
+
 # C extensions
 *.so
 
