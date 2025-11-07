@@ -42,6 +42,25 @@ The application follows a streamlined workflow for emotion tracking, utilizing v
 
 
 
+## Quick Start
+
+### 🚀 Running Locally (Without Docker)
+
+For local development with full camera access, see the **[Local Development Guide](README_LOCAL.md)**.
+
+Quick commands:
+```bash
+./setup_local.sh          # One-time setup
+source venv/bin/activate  # Activate environment
+./start_standalone.sh     # Start the app
+```
+
+### 🐳 Running with Docker
+
+For containerized deployment, see the **[Docker Guide](README_DOCKER.md)**.
+
+---
+
 ## Prerequisites
 
 - Python 3.x
