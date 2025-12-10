@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh auth login:*)",
+      "Bash(gh auth status:*)",
+      "Bash(chmod:*)",
+      "Bash(./create_ux_issues.sh)",
+      "Bash(streamlit run:*)",
+      "Bash(make stop:*)"
+    ]
+  }
+}

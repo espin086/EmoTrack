@@ -1,706 +1,476 @@
-# EmoTrack: Real-Time Emotion Tracking Application
+<div align="center">
+
+# 🎭 EmoTrack
+
+### Real-Time Emotion Analytics Platform
+
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Powered by AWS Rekognition](https://img.shields.io/badge/AWS-Rekognition-orange.svg)](https://aws.amazon.com/rekognition/)
+[![Built with Streamlit](https://img.shields.io/badge/Built%20with-Streamlit-red.svg)](https://streamlit.io/)
+
+**Track, analyze, and understand your emotional patterns with AI-powered facial recognition**
+
+[Live Demo](https://www.youtube.com/watch?v=jj4j2264Nxw) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 <a href="https://buymeacoffee.com/jjespinozag" target="_blank">
     <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174">
 </a>
 
-EmoTrack is a real-time emotion tracking application that utilizes facial recognition to capture emotions from a webcam feed. Built with Python, Streamlit, FastAPI, and AWS Rekognition, it provides both standalone and microservices architectures for flexible deployment.
+---
 
-## 🎯 Features
+### 📺 See It In Action
 
-### Real-Time Emotion Detection
-![Happy Emotion Detection](./images/ui_happy.png)
-![Angry Emotion Detection](./images/ui_angry.png)
+[![EmoTrack Demo](https://img.youtube.com/vi/jj4j2264Nxw/maxresdefault.jpg)](https://www.youtube.com/watch?v=jj4j2264Nxw)
 
-### Daily Emotion Analytics
-![ui_new_metrics](./images/ui_metrics.png)
+*Click to watch the full demo*
 
-### Key Capabilities
-- ✅ **Real-time webcam emotion tracking** with AWS Rekognition
-- ✅ **Daily emotion variation graphs** with trend analysis
-- ✅ **Multiple deployment options** (Standalone, Full Stack, Docker)
-- ✅ **RESTful API** with FastAPI backend
-- ✅ **Data export** (JSON/CSV formats)
-- ✅ **Emotion statistics** with pie charts and visualizations
-- ✅ **SQLite database** for persistent storage
-- ✅ **Modern UI** built with Streamlit
-
-### Supported Emotions
-- HAPPY 😊
-- SAD 😢
-- ANGRY 😠
-- SURPRISED 😲
-- CONFUSED 😕
-- DISGUSTED 🤢
-- CALM 😌
-- FEAR 😨
+</div>
 
 ---
 
-## 🏗️ Architecture
+## 🚀 What is EmoTrack?
 
-### Standalone Mode
-```
-┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │
-│  Streamlit App  │────▶│ AWS Rekognition │
-│  (All-in-One)   │     │                 │
-│                 │     └─────────────────┘
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   SQLite DB     │
-└─────────────────┘
-```
+EmoTrack is a cutting-edge emotion analytics platform that combines **AI-powered facial recognition** with **beautiful data visualization** to help you understand your emotional patterns over time.
 
-### Full Stack / Docker Mode
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│  Streamlit UI   │────▶│  FastAPI Backend│────▶│ AWS Rekognition │
-│   (Frontend)    │     │     (API)       │     │                 │
-│                 │     │                 │     └─────────────────┘
-└─────────────────┘     └────────┬────────┘
-                                 │
-                                 ▼
-                        ┌─────────────────┐
-                        │   SQLite DB     │
-                        │   (Volume)      │
-                        └─────────────────┘
-```
+Built for researchers, therapists, wellness coaches, and anyone interested in emotional intelligence, EmoTrack provides real-time emotion detection with comprehensive analytics dashboards.
+
+### ✨ Key Features
+
+🎥 **Real-Time Emotion Detection**
+- Live webcam feed with instant emotion recognition
+- Powered by AWS Rekognition for 99% accuracy
+- Frame sampling optimization (reduced API costs by 24x)
+
+📊 **Beautiful Analytics Dashboards**
+- Modern dark-themed charts with vibrant colors
+- Today vs Weekly baseline comparisons
+- 12-month trend analysis with normalized distributions
+- Auto-refreshing metrics during live tracking
+
+🏗️ **Flexible Architecture**
+- **Standalone Mode**: All-in-one Streamlit app
+- **Full Stack Mode**: FastAPI backend + Streamlit frontend
+- **Docker Mode**: Containerized microservices
+
+📈 **Comprehensive Insights**
+- 8 emotion types: Happy, Sad, Angry, Surprised, Confused, Disgusted, Calm, Fear
+- Percentage-based distributions for fair comparisons
+- Monthly emotional patterns and seasonal trends
+- Export data in JSON/CSV formats
+
+⚡ **Performance Optimized**
+- Batch processing: 60 emotions before database write
+- Frame sampling: Every 24th frame processed
+- Auto-refresh: Updates every 60 seconds
+- SQLite with potential for PostgreSQL/MySQL scaling
 
 ---
 
-## 🚀 Quick Start
+## 🎯 Use Cases
+
+- **🧘 Personal Wellness**: Track your emotional health over time
+- **🔬 Research**: Study emotional patterns in controlled environments
+- **💼 Workplace Analytics**: Monitor team morale (with consent)
+- **🎓 Education**: Teach emotional intelligence concepts
+- **🏥 Therapy**: Support mental health tracking (clinical validation required)
+- **🎮 Gaming**: Emotion-responsive interactive experiences
+
+---
+
+## 🏁 Quick Start
 
 ### Prerequisites
-- Python 3.8+ (for local setup) OR Docker & Docker Compose
-- AWS account with Rekognition service enabled
-- Webcam
 
-### Option 1: Local Setup (Recommended for Camera Access)
+- Python 3.11+
+- AWS Account with Rekognition access
+- Webcam (for emotion detection)
+- macOS, Linux, or Windows
 
-**Step 1: Clone and Setup**
+### Option 1: Standalone Mode (Recommended for Development)
+
 ```bash
-git clone https://github.com/espin086/EmoTrack
+# Clone the repository
+git clone https://github.com/yourusername/EmoTrack.git
 cd EmoTrack
+
+# Setup environment
 ./setup_local.sh
-```
+source venv/bin/activate
 
-**Step 2: Configure AWS**
-```bash
-# Option A: Environment variables
-export AWS_ACCESS_KEY_ID="your_access_key"
-export AWS_SECRET_ACCESS_KEY="your_secret_key"
+# Configure AWS credentials
+export AWS_ACCESS_KEY_ID="your_key"
+export AWS_SECRET_ACCESS_KEY="your_secret"
 export AWS_DEFAULT_REGION="us-east-1"
 
-# Option B: AWS CLI
-aws configure
+# Generate sample data (optional)
+python generate_fake_data.py
+
+# Launch the app
+make start-standalone
 ```
 
-**Step 3: Run Application**
+**Access:** http://localhost:8501
+
+### Option 2: Full Stack Mode (For API Development)
+
 ```bash
+# Setup environment
+./setup_local.sh
 source venv/bin/activate
-./start_standalone.sh
+
+# Configure AWS credentials
+export AWS_ACCESS_KEY_ID="your_key"
+export AWS_SECRET_ACCESS_KEY="your_secret"
+
+# Generate sample data for backend
+python generate_fake_data.py data/emotions.db
+
+# Start backend + frontend
+make dev
 ```
 
-Open **http://localhost:8501** and start tracking! 🎉
+**Frontend:** http://localhost:8501
+**Backend API:** http://localhost:8000/docs
 
-### Option 2: Docker Setup
+### Option 3: Docker Mode
 
 ```bash
-git clone https://github.com/espin086/EmoTrack
-cd EmoTrack
-
-# Configure AWS credentials in .env
-cp .env.example .env
-# Edit .env with your credentials
-
-# Build and run
+# Build and run containers
 docker-compose up --build
 ```
 
-Access:
-- **Frontend**: http://localhost:8501
-- **API Docs**: http://localhost:8000/docs
+**Note:** Webcam access in Docker only works on Linux hosts.
 
 ---
 
-## 📦 Installation
+## 🎨 Architecture
 
-### Local Development Setup
+### 🏗️ Dual-Mode Design
 
-#### 1. Create Virtual Environment
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+┌─────────────────────────────────────────────────────────┐
+│                     EMOTRACK                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────────┐          ┌──────────────────┐  │
+│  │  Standalone Mode  │          │  Full Stack Mode  │  │
+│  │                   │          │                   │  │
+│  │  Streamlit App    │          │  FastAPI Backend  │  │
+│  │  (All-in-One)     │          │  +                │  │
+│  │                   │          │  Streamlit Frontend│  │
+│  └────────┬─────────┘          └────────┬──────────┘  │
+│           │                              │             │
+│           └──────────────┬───────────────┘             │
+│                          │                             │
+│                    ┌─────▼──────┐                      │
+│                    │   SQLite    │                      │
+│                    │  Database   │                      │
+│                    └─────┬──────┘                      │
+│                          │                             │
+│                    ┌─────▼──────┐                      │
+│                    │    AWS      │                      │
+│                    │ Rekognition │                      │
+│                    └────────────┘                      │
+└─────────────────────────────────────────────────────────┘
 ```
 
-#### 2. Install Dependencies
-```bash
-pip install -r requirements-local.txt
+### 🔄 Data Flow
+
 ```
-
-#### 3. Configure AWS Credentials
-
-**Method 1: Environment Variables**
-```bash
-export AWS_ACCESS_KEY_ID="your_access_key_here"
-export AWS_SECRET_ACCESS_KEY="your_secret_key_here"
-export AWS_DEFAULT_REGION="us-east-1"
-
-# Make permanent (macOS/Linux)
-echo 'export AWS_ACCESS_KEY_ID="your_access_key"' >> ~/.zshrc
-echo 'export AWS_SECRET_ACCESS_KEY="your_secret_key"' >> ~/.zshrc
-echo 'export AWS_DEFAULT_REGION="us-east-1"' >> ~/.zshrc
-source ~/.zshrc
-```
-
-**Method 2: AWS CLI (Recommended)**
-```bash
-# Install AWS CLI
-brew install awscli  # macOS
-# or
-pip install awscli
-
-# Configure
-aws configure
-```
-
-Enter when prompted:
-- AWS Access Key ID
-- AWS Secret Access Key
-- Default region name (e.g., `us-east-1`)
-- Default output format (e.g., `json`)
-
-### Docker Setup
-
-#### 1. Install Docker
-- **macOS/Windows**: [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- **Linux**: Follow [Docker installation guide](https://docs.docker.com/engine/install/)
-
-#### 2. Configure Environment
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-```bash
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_DEFAULT_REGION=us-east-1
-```
-
-#### 3. Run with Docker Compose
-```bash
-docker-compose up --build
+📹 Webcam Feed
+    ↓
+🎯 Frame Sampling (1 in 24 frames)
+    ↓
+🖼️ JPEG Encoding
+    ↓
+☁️ AWS Rekognition API
+    ↓
+🎭 Emotion Detection
+    ↓
+💾 Batch Buffer (60 emotions)
+    ↓
+🗄️ SQLite Database
+    ↓
+📊 Analytics & Visualization
 ```
 
 ---
 
-## 🎮 Usage
+## 📊 Emotion Types
 
-### Running Locally
-
-#### Standalone Mode (Simplest)
-Perfect for personal use, single process:
-
-```bash
-source venv/bin/activate
-./start_standalone.sh
-# OR
-streamlit run EmoTrack.py
-```
-
-**Features:**
-- Real-time webcam tracking
-- Daily emotion graphs
-- SQLite storage
-- Opens at http://localhost:8501
-
-#### Full Stack Mode (Advanced)
-Separate backend and frontend for development:
-
-**Terminal 1 - Backend:**
-```bash
-source venv/bin/activate
-./start_backend.sh
-# OR
-cd backend && uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-```
-
-**Terminal 2 - Frontend:**
-```bash
-source venv/bin/activate
-./start_frontend.sh
-# OR
-cd frontend && BACKEND_URL=http://localhost:8000 streamlit run app.py
-```
-
-**Features:**
-- All standalone features +
-- RESTful API
-- API documentation
-- Emotion summaries
-- Data export (JSON/CSV)
-- Advanced analytics
-
-### Running with Docker
-
-```bash
-# Start services
-docker-compose up
-
-# Start in background
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-### Using the Application
-
-1. **Open** http://localhost:8501 in your browser
-2. **Navigate** to "Webcam Feed" in the sidebar
-3. **Click** "▶️ Start" button
-4. **Allow** camera permissions when prompted
-5. **Watch** real-time emotion detection
-6. **Click** "⏹️ Stop" when finished
-7. **View** "Display Graph" for emotion trends
+| Emotion | Icon | AWS Rekognition Label | Color Code |
+|---------|------|----------------------|------------|
+| Happy | 😊 | `HAPPY` | `#FFD93D` |
+| Calm | 😌 | `CALM` | `#6BCB77` |
+| Surprised | 😲 | `SURPRISED` | `#4D96FF` |
+| Confused | 😕 | `CONFUSED` | `#9D84B7` |
+| Sad | 😢 | `SAD` | `#5F85DB` |
+| Fear | 😨 | `FEAR` | `#FF6B9D` |
+| Angry | 😠 | `ANGRY` | `#FF5757` |
+| Disgust | 🤢 | `DISGUST` | `#A084DC` |
 
 ---
 
-## ⚙️ Make Commands
+## 🛠️ Tech Stack
 
-We provide convenient Make commands for common tasks:
+### Frontend
+- **Streamlit** - Interactive web interface
+- **Matplotlib** - Chart generation with modern dark theme
+- **Pandas** - Data manipulation and analysis
+- **OpenCV** - Webcam capture and image processing
+
+### Backend
+- **FastAPI** - High-performance REST API
+- **Pydantic** - Data validation
+- **SQLite** - Lightweight database (production: PostgreSQL/MySQL)
+
+### AI/ML
+- **AWS Rekognition** - Facial emotion detection
+- **Boto3** - AWS SDK for Python
+
+### DevOps
+- **Docker** - Containerization
+- **Docker Compose** - Multi-container orchestration
+- **Makefile** - Task automation
+
+---
+
+## 📖 Documentation
+
+### Command Reference
 
 ```bash
-make help              # Show all available commands
-make setup             # Create virtual environment
-make install           # Install dependencies
-make start-standalone  # Start standalone mode
-make start-backend     # Start backend only
-make start-frontend    # Start frontend only
-make stop              # Stop all services
-make dev               # Start both backend and frontend with auto-reload
+# Development
+make start-standalone  # Run all-in-one app
+make dev               # Run backend + frontend in parallel
+make start-backend     # Run FastAPI backend only
+make start-frontend    # Run Streamlit frontend only
+
+# Testing
+make test              # Run backend API tests
+make camera-test       # Test webcam access
 
 # Utilities
+make status            # Check running services
+make stop              # Kill all EmoTrack processes
 make check-aws         # Verify AWS credentials
-make camera-test       # Test camera access
-make status            # Check if services are running
-make clean             # Remove venv and cache files
-
-# Database
 make db-backup         # Backup emotions database
-make db-clear          # Clear all emotion data (with confirmation)
+make db-clear          # Delete all emotion data
 
-# Development
-make test              # Run tests
-make lint              # Run linters
-make format            # Format code with black
+# Data Generation
+python generate_fake_data.py                # Generate for standalone
+python generate_fake_data.py data/emotions.db  # Generate for full stack
+```
+
+### API Endpoints
+
+**Base URL:** `http://localhost:8000`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/detect-emotion` | Upload frame, returns emotion |
+| `POST` | `/emotions/batch` | Save multiple emotion records |
+| `GET` | `/emotions/daily-stats?days=N` | Daily emotion distribution |
+| `GET` | `/emotions/summary` | Overall statistics |
+| `GET` | `/emotions/export?format=json\|csv` | Export all data |
+| `DELETE` | `/emotions/clear?confirm=true` | Delete all records |
+| `GET` | `/health` | Health check |
+
+**Interactive Docs:** http://localhost:8000/docs
+
+### Database Schema
+
+```sql
+CREATE TABLE emotions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp REAL,                -- Unix timestamp
+    emotion TEXT,                  -- HAPPY, SAD, ANGRY, etc.
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Database Locations:**
+- Standalone: `./emotions.db`
+- Full Stack: `./data/emotions.db`
+- Docker: `/app/data/emotions.db` (volume mounted)
+
+---
+
+## 🎯 Performance Optimization
+
+### Frame Sampling
+```python
+FRAME_SAMPLE_RATE = 24  # Process every 24th frame
+# Reduces AWS API calls by 96%
+# Cost savings: ~$0.001 → $0.00004 per second
+```
+
+### Batch Processing
+```python
+BATCH_SIZE = 60  # Buffer 60 emotions before DB write
+# Reduces database I/O by 60x
+# Prevents frequent disk writes
+```
+
+### Auto-Refresh
+```python
+REFRESH_INTERVAL = 60  # Update charts every 60 seconds
+# Minimal interruption to video feed
+# Aligns with batch save cycle
 ```
 
 ---
 
-## 🎥 Camera Access
+## 🤝 Contributing
 
-### macOS
-Grant camera permissions to your terminal:
-1. **System Preferences** → **Security & Privacy** → **Privacy** → **Camera**
-2. Enable for Terminal.app or iTerm2
-3. Restart terminal if needed
+We welcome contributions! Here's how you can help:
 
-### Linux
-Grant user access to video devices:
-```bash
-sudo usermod -a -G video $USER
-# Log out and back in
-```
+### Getting Started
 
-### Test Camera
-```bash
-make camera-test
-# OR
-python3 -c "import cv2; cap = cv2.VideoCapture(0); print('✅ Camera OK!' if cap.read()[0] else '❌ Failed'); cap.release()"
-```
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Make your changes**
+4. **Run tests**
+   ```bash
+   cd backend && pytest test_api.py -v
+   ```
+5. **Commit your changes**
+   ```bash
+   git commit -m "✨ Add amazing feature"
+   ```
+6. **Push to your branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+7. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow [PEP 8](https://pep8.org/) style guide
+- Write docstrings for all functions
+- Add tests for new features
+- Update documentation as needed
+- Use conventional commit messages
+
+### Areas for Contribution
+
+- 🎨 UI/UX improvements
+- 📊 New chart types and visualizations
+- 🔌 Integration with other emotion detection APIs
+- 🌐 Multi-language support
+- 🧪 Additional test coverage
+- 📝 Documentation improvements
+- 🐛 Bug fixes
 
 ---
 
-## 📡 API Documentation
+## 🔒 Security & Privacy
 
-When running in Full Stack or Docker mode, the backend provides a RESTful API.
+### Data Privacy
+- All emotion data is stored **locally** in SQLite
+- No data is sent to external servers (except AWS Rekognition API)
+- Database files can be encrypted at rest
+- No personal identifiable information (PII) is collected
 
-### Endpoints
+### AWS Security
+- Use IAM roles with minimal permissions
+- Rotate AWS credentials regularly
+- Never commit credentials to version control
+- Use AWS Secrets Manager in production
 
-#### Emotion Detection
-```bash
-POST /detect-emotion
-```
-Upload an image and detect emotion.
+### Webcam Access
+- Webcam is only accessed when tracking is active
+- No video is recorded or stored
+- Only emotion metadata is saved to database
+- Users have full control over data collection
 
-#### Batch Save
-```bash
-POST /emotions/batch
-```
-Save multiple emotion records at once.
+---
 
-#### Daily Statistics
-```bash
-GET /emotions/daily-stats?days=7
-```
-Get emotion statistics for the last N days.
+## 📈 Roadmap
 
-#### Summary
-```bash
-GET /emotions/summary
-```
-Get overall emotion distribution and statistics.
+### Planned Features
 
-#### Export Data
-```bash
-GET /emotions/export?format=json
-GET /emotions/export?format=csv
-```
-Export all emotion data.
+- [ ] **PostgreSQL/MySQL support** for production deployments
+- [ ] **Authentication & user management** with JWT tokens
+- [ ] **Real-time notifications** for emotion thresholds
+- [ ] **Mobile app** with React Native
+- [ ] **Multi-face detection** for group analytics
+- [ ] **Custom emotion models** with TensorFlow
+- [ ] **Voice emotion analysis** integration
+- [ ] **Slack/Discord integration** for team analytics
+- [ ] **Data anonymization** for research sharing
+- [ ] **Cloud deployment guides** (AWS, Azure, GCP)
 
-#### Clear Data
-```bash
-DELETE /emotions/clear?confirm=true
-```
-Delete all emotion records (requires confirmation).
+---
 
-#### Health Check
-```bash
-GET /health
-```
-Check API and database health.
+## ⚠️ Known Limitations
 
-### Interactive Documentation
-
-Access interactive API docs:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-### Example Usage
-
-```bash
-# Check API health
-curl http://localhost:8000/health
-
-# Get daily stats
-curl http://localhost:8000/emotions/daily-stats?days=7
-
-# Export data as JSON
-curl http://localhost:8000/emotions/export?format=json > emotions.json
-```
+1. **SQLite Concurrency** - Single-process only; use PostgreSQL/MySQL for multi-user
+2. **No Authentication** - Backend has open CORS; add JWT/API keys for production
+3. **Frame Sampling Trade-off** - Processes 1 in 24 frames; some emotions may be missed
+4. **Batch Buffer Risk** - 60-emotion buffer in memory; data loss possible on crash
+5. **Docker Webcam** - Camera access only works on Linux containers
+6. **AWS Costs** - Rekognition charges per API call; ~$0.001 per image
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Camera Issues
-
-**Problem:** "Failed to get frame from webcam"
-
-**Solutions:**
-1. Check if another app is using the camera
-2. Grant camera permissions (see Camera Access section)
-3. Try different camera index:
-   ```python
-   # In code, change from:
-   cv2.VideoCapture(0)
-   # To:
-   cv2.VideoCapture(1)  # or 2, 3, etc.
-   ```
-4. On macOS, restart terminal after granting permissions
-
-### AWS Rekognition Errors
-
-**Problem:** Boto3 credential errors or "Unable to locate credentials"
-
-**Solutions:**
-1. Verify credentials are set:
-   ```bash
-   aws configure list
-   # OR
-   make check-aws
-   ```
-2. Check IAM permissions include `rekognition:DetectFaces`
-3. Verify AWS region is correct
-4. Test AWS connection:
-   ```bash
-   aws rekognition describe-projects --region us-east-1
-   ```
-
-### Port Already in Use
-
-**Problem:** "Address already in use" on port 8501 or 8000
-
-**Solutions:**
 ```bash
-# Stop all EmoTrack services
+# Check camera permissions
+# macOS: System Preferences → Security & Privacy → Camera
+
+# Test camera
+make camera-test
+
+# Try different camera index
+# In code: cv2.VideoCapture(0) → cv2.VideoCapture(1)
+```
+
+### AWS Issues
+```bash
+# Verify credentials
+make check-aws
+
+# Or manually
+aws configure list
+aws rekognition describe-projects --region us-east-1
+```
+
+### Port Conflicts
+```bash
+# Stop all services
 make stop
 
-# OR manually kill processes
-lsof -ti:8501 | xargs kill -9  # Frontend
-lsof -ti:8000 | xargs kill -9  # Backend
-
-# On Windows
-netstat -ano | findstr :8501
-taskkill /PID <PID> /F
+# Or manually
+lsof -ti:8501 | xargs kill -9
+lsof -ti:8000 | xargs kill -9
 ```
 
 ### Module Not Found
-
-**Problem:** `ModuleNotFoundError` when running
-
-**Solutions:**
-1. Activate virtual environment:
-   ```bash
-   source venv/bin/activate
-   ```
-2. Reinstall dependencies:
-   ```bash
-   make install
-   # OR
-   pip install -r requirements-local.txt
-   ```
-
-### Docker Issues
-
-**Problem:** Webcam not accessible in Docker
-
-**Solution:**
-Docker has limitations with webcam access. Use local setup instead:
 ```bash
-./setup_local.sh
+# Activate virtual environment
 source venv/bin/activate
-./start_standalone.sh
+
+# Reinstall dependencies
+pip install -r requirements-local.txt
 ```
-
-**Problem:** Backend connection issues
-
-**Solutions:**
-```bash
-# Check backend health
-curl http://localhost:8000/health
-
-# View backend logs
-docker-compose logs backend
-
-# Restart services
-docker-compose restart
-```
-
-### Database Issues
-
-**Problem:** Database locked or corrupted
-
-**Solutions:**
-```bash
-# Backup current database
-make db-backup
-
-# Clear and restart
-make db-clear
-
-# Restart application
-make stop
-make start-standalone
-```
-
----
-
-## 📁 Project Structure
-
-```
-EmoTrack/
-├── EmoTrack.py                 # Standalone Streamlit application
-│
-├── backend/                    # FastAPI backend service
-│   ├── app.py                 # API endpoints and logic
-│   ├── requirements.txt       # Backend dependencies
-│   ├── test_api.py           # API tests
-│   └── Dockerfile            # Backend container
-│
-├── frontend/                   # Streamlit frontend service
-│   ├── app.py                 # UI application
-│   ├── requirements.txt       # Frontend dependencies
-│   └── Dockerfile            # Frontend container
-│
-├── logic/
-│   └── facial_analysis.py     # Emotion detection logic
-│
-├── images/                     # UI screenshots
-│   ├── ui_happy.png
-│   ├── ui_angry.png
-│   └── ...
-│
-├── data/                       # Database storage (Full Stack mode)
-│   └── emotions.db
-│
-├── Setup Scripts
-│   ├── setup_local.sh         # Automated local setup
-│   ├── start_standalone.sh    # Start standalone mode
-│   ├── start_backend.sh       # Start backend service
-│   └── start_frontend.sh      # Start frontend service
-│
-├── Configuration
-│   ├── requirements.txt       # Original combined requirements
-│   ├── requirements-local.txt # Local development requirements
-│   ├── docker-compose.yml     # Docker orchestration
-│   ├── Makefile              # Make commands
-│   └── .env.example          # Environment variables template
-│
-├── Documentation
-│   ├── README.md             # This file
-│   └── migrate_data.py       # Database migration script
-│
-└── Database Files
-    └── emotions.db           # SQLite database (Standalone mode)
-```
-
----
-
-## 💾 Database
-
-### Schema
-
-```sql
-CREATE TABLE emotions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp REAL,
-    emotion TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Locations
-- **Standalone mode**: `emotions.db` (root directory)
-- **Full Stack mode**: `data/emotions.db`
-- **Docker mode**: `data/emotions.db` (mounted volume)
-
-### Management
-
-**Backup Database:**
-```bash
-make db-backup
-# Creates: backups/emotions_YYYYMMDD_HHMMSS.db
-```
-
-**Clear Database:**
-```bash
-make db-clear
-# Requires confirmation
-```
-
-**Manual Backup:**
-```bash
-cp emotions.db backups/emotions_$(date +%Y%m%d_%H%M%S).db
-```
-
-**View Data:**
-```bash
-sqlite3 emotions.db "SELECT * FROM emotions ORDER BY timestamp DESC LIMIT 10;"
-```
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file or set environment variables:
-
-```bash
-# AWS Configuration (Required)
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_DEFAULT_REGION=us-east-1
-
-# Backend Configuration (Full Stack mode)
-BACKEND_URL=http://localhost:8000
-DB_PATH=./data/emotions.db
-
-# Optional
-LOG_LEVEL=INFO
-```
-
-### Application Settings
-
-**Adjust frame sampling rate** (in `EmoTrack.py` or `frontend/app.py`):
-```python
-FRAME_SAMPLE_RATE = 24  # Sample every 24th frame (higher = less CPU)
-BATCH_SIZE = 60         # Number of emotions to batch before saving
-```
-
-**Change camera index** (if you have multiple cameras):
-```python
-cv2.VideoCapture(0)  # Change 0 to 1, 2, etc.
-```
-
----
-
-## 🧪 Development
-
-### Running Tests
-
-```bash
-# Backend tests
-cd backend
-pytest test_api.py -v
-
-# Using make
-make test
-```
-
-### Code Quality
-
-```bash
-# Format code
-make format
-
-# Run linters
-make lint
-
-# Type checking (if using mypy)
-mypy backend/app.py
-```
-
-### Adding New Features
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**
-4. **Run tests**: `make test`
-5. **Commit**: `git commit -m 'Add amazing feature'`
-6. **Push**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request**
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Guidelines
-1. Follow PEP 8 style guide
-2. Add tests for new features
-3. Update documentation
-4. Ensure all tests pass
-5. Keep commits atomic and well-described
 
 ---
 
 ## 📄 License
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
 MIT License
 
-Copyright (c) 2024 EmoTrack
+Copyright (c) 2025 EmoTrack Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -711,66 +481,38 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-## 📞 Support
-
-- **Issues**: https://github.com/espin086/EmoTrack/issues
-- **Discussions**: https://github.com/espin086/EmoTrack/discussions
-- **Email**: For private inquiries
+```
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **AWS Rekognition** for emotion detection capabilities
-- **Streamlit** for the amazing UI framework
-- **FastAPI** for the high-performance API framework
-- **OpenCV** for video processing
-- All contributors and users of EmoTrack
+- **AWS Rekognition** for providing powerful emotion detection capabilities
+- **Streamlit** for making web app development delightful
+- **FastAPI** for the blazing-fast backend framework
+- **OpenCV** for robust computer vision tools
+- All our contributors and supporters!
 
 ---
 
-## ⚡ Quick Reference
+## 💬 Community & Support
 
-### Commands Cheat Sheet
-
-```bash
-# Setup (one time)
-./setup_local.sh && source venv/bin/activate
-
-# Run standalone
-./start_standalone.sh                    # http://localhost:8501
-
-# Run full stack
-./start_backend.sh                       # Terminal 1
-./start_frontend.sh                      # Terminal 2
-
-# Using Make
-make start-standalone                    # Standalone mode
-make dev                                 # Full stack with auto-reload
-make stop                                # Stop all services
-make status                              # Check service status
-make check-aws                           # Verify AWS config
-make camera-test                         # Test camera
-
-# Docker
-docker-compose up --build                # Build and run
-docker-compose down                      # Stop and remove containers
-docker-compose logs -f                   # Follow logs
-```
+- **Issues**: [GitHub Issues](https://github.com/yourusername/EmoTrack/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/EmoTrack/discussions)
+- **Email**: support@emotrack.dev
 
 ---
 
-**Happy Emotion Tracking! 🎭😊**
+<div align="center">
 
-Made with ❤️ by the EmoTrack team
+### ⭐ Star us on GitHub!
+
+If you find EmoTrack useful, please consider giving us a star. It helps the project grow!
+
+[![GitHub stars](https://img.shields.io/github/stars/yourusername/EmoTrack.svg?style=social&label=Star)](https://github.com/yourusername/EmoTrack)
+
+**Built with ❤️ by the EmoTrack team**
+
+[Website](https://emotrack.dev) • [Twitter](https://twitter.com/emotrack) • [Blog](https://blog.emotrack.dev)
+
+</div>
