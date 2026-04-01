@@ -34,7 +34,19 @@ app.add_middleware(
 from logic.facial_analysis import detect_emotion as _detect_emotion
 
 # Database configuration
-DB_PATH = os.environ.get("DB_PATH", "/app/data/emotions.db")
+import sys
+
+def _default_db_path():
+    """Get default DB path: App Support on macOS (sandbox-safe), /app/data in Docker."""
+    if sys.platform == "darwin" and "DB_PATH" not in os.environ:
+        app_support = os.path.join(
+            os.path.expanduser("~"), "Library", "Application Support", "EmoTrack"
+        )
+        os.makedirs(app_support, exist_ok=True)
+        return os.path.join(app_support, "emotions.db")
+    return os.environ.get("DB_PATH", "/app/data/emotions.db")
+
+DB_PATH = _default_db_path()
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 # Pydantic models

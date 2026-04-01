@@ -1,6 +1,8 @@
 """EmoTrack"""
 
 
+import os
+import sys
 import streamlit as st
 import cv2
 import sqlite3
@@ -16,10 +18,24 @@ from logic.facial_analysis import detect_emotion
 BATCH_SIZE = 60
 
 
+def _get_db_path():
+    """Get the database path, using App Support directory on macOS for sandbox compatibility."""
+    if sys.platform == "darwin":
+        app_support = os.path.join(
+            os.path.expanduser("~"), "Library", "Application Support", "EmoTrack"
+        )
+        os.makedirs(app_support, exist_ok=True)
+        return os.path.join(app_support, "emotions.db")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "emotions.db")
+
+
+DB_PATH = _get_db_path()
+
+
 # Function to save a list of emotions to SQLite
 def save_emotions_batch(emotions_batch):
     """Save a list of emotions to SQLite"""
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.executemany(
             "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)", emotions_batch
@@ -28,10 +44,10 @@ def save_emotions_batch(emotions_batch):
 
 
 # Create SQLite database if it doesn't exist
-with sqlite3.connect("emotions.db") as conn:
+with sqlite3.connect(DB_PATH) as conn:
     cursor = conn.cursor()
     cursor.execute(
-        """CREATE TABLE IF NOT EXISTS emotions 
+        """CREATE TABLE IF NOT EXISTS emotions
                   (timestamp INTEGER, emotion TEXT)"""
     )
 
@@ -68,7 +84,7 @@ with tab1:
             st.rerun()
 
     # Fetch summary statistics
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         # Total emotions
         total_query = "SELECT COUNT(*) as total FROM emotions"
         total_result = pd.read_sql_query(total_query, conn)
@@ -114,7 +130,7 @@ with tab1:
 
     # Today vs Week Comparison
     st.subheader("Today vs This Week")
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         # Today's emotions
         today_comparison_query = """
         SELECT emotion, COUNT(*) as count
@@ -175,7 +191,7 @@ with tab1:
 
     # Monthly Trend
     st.subheader("Monthly Emotion Trends")
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         monthly_query = """
         SELECT
             strftime('%Y-%m', DATETIME(timestamp, 'unixepoch')) as month,
@@ -322,7 +338,7 @@ with tab2:
     # Export Data
     st.subheader("📥 Export Data")
 
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         total_query = "SELECT COUNT(*) as total FROM emotions"
         total_result = pd.read_sql_query(total_query, conn)
         total_emotions = total_result['total'].iloc[0] if len(total_result) > 0 else 0
@@ -331,7 +347,7 @@ with tab2:
 
     with col1:
         if total_emotions > 0:
-            with sqlite3.connect("emotions.db") as conn:
+            with sqlite3.connect(DB_PATH) as conn:
                 export_df = pd.read_sql_query("SELECT * FROM emotions", conn)
                 csv = export_df.to_csv(index=False)
                 st.download_button(
@@ -346,7 +362,7 @@ with tab2:
 
     with col2:
         if total_emotions > 0:
-            with sqlite3.connect("emotions.db") as conn:
+            with sqlite3.connect(DB_PATH) as conn:
                 export_df = pd.read_sql_query("SELECT * FROM emotions", conn)
                 json_data = export_df.to_json(orient='records', indent=2)
                 st.download_button(
@@ -366,7 +382,7 @@ with tab2:
         st.warning("This will permanently delete all emotion records!")
         if st.checkbox("I confirm I want to delete all data"):
             if st.button("🗑️ Clear All Emotion Data", type="secondary"):
-                with sqlite3.connect("emotions.db") as conn:
+                with sqlite3.connect(DB_PATH) as conn:
                     cursor = conn.cursor()
                     cursor.execute("DELETE FROM emotions")
                     conn.commit()
