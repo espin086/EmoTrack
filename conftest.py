@@ -121,24 +121,35 @@ def sample_jpeg_bytes():
 
 
 @pytest.fixture
+def mock_model_prediction():
+    """Mock ONNX model prediction for emotion detection (HAPPY)"""
+    import numpy as np
+    output = np.zeros((1, 7), dtype=np.float32)
+    output[0, 3] = 0.95  # HAPPY is index 3
+    return [output]
+
+
+@pytest.fixture
+def mock_no_face_detection():
+    """Mock face cascade returning no faces detected"""
+    return ()
+
+
+@pytest.fixture
+def mock_face_detected():
+    """Mock face cascade returning a detected face region"""
+    import numpy as np
+    return np.array([[25, 25, 50, 50]])  # x, y, w, h
+
+
+# Keep old fixtures as aliases for backward compatibility in tests
+@pytest.fixture
 def mock_rekognition_response():
-    """Mock AWS Rekognition response for emotion detection"""
-    return {
-        "FaceDetails": [
-            {
-                "Emotions": [
-                    {"Type": "HAPPY", "Confidence": 98.5},
-                    {"Type": "SAD", "Confidence": 1.2},
-                    {"Type": "CALM", "Confidence": 0.3}
-                ]
-            }
-        ]
-    }
+    """Legacy fixture — returns 'HAPPY' emotion string for mocking _detect_emotion"""
+    return "HAPPY"
 
 
 @pytest.fixture
 def mock_rekognition_no_face():
-    """Mock AWS Rekognition response with no face detected"""
-    return {
-        "FaceDetails": []
-    }
+    """Legacy fixture — returns 'NO FACE' string for mocking _detect_emotion"""
+    return "NO FACE"

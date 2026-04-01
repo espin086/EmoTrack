@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import sqlite3
 import cv2
 import numpy as np
-import boto3
 from typing import List, Dict, Optional
 import json
 import base64
@@ -31,8 +30,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize AWS Rekognition client
-client = boto3.client("rekognition")
+# Import on-device emotion detection
+from logic.facial_analysis import detect_emotion as _detect_emotion
 
 # Database configuration
 DB_PATH = os.environ.get("DB_PATH", "/app/data/emotions.db")
@@ -89,29 +88,23 @@ def read_root():
 
 @app.post("/detect-emotion")
 async def detect_emotion(file: UploadFile = File(...)):
-    """Detect emotion from uploaded image"""
+    """Detect emotion from uploaded image using on-device ML"""
     try:
         contents = await file.read()
         nparr = np.frombuffer(contents, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        
-        # Call AWS Rekognition
-        response = client.detect_faces(
-            Image={"Bytes": contents}, 
-            Attributes=["EMOTIONS"]
-        )
-        
-        if not response["FaceDetails"]:
-            return {"emotion": "NO FACE", "confidence": 0}
-        
-        emotions = response["FaceDetails"][0]["Emotions"]
-        top_emotion = emotions[0]
-        
+
+        if frame is None:
+            raise HTTPException(status_code=400, detail="Invalid image data")
+
+        emotion = _detect_emotion(frame)
+
         return {
-            "emotion": top_emotion["Type"],
-            "confidence": top_emotion["Confidence"],
-            "all_emotions": emotions
+            "emotion": emotion,
+            "confidence": 0 if emotion == "NO FACE" else 100,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error detecting emotion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
