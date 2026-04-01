@@ -49,27 +49,24 @@ class TestHealthCheck:
             assert "error" in data
 
 
-@pytest.mark.aws
-@pytest.mark.integration
+@pytest.mark.unit
 class TestEmotionDetection:
     """Tests for emotion detection endpoint"""
 
-    def test_detect_emotion_success(self, api_client, sample_jpeg_bytes, mock_rekognition_response):
+    def test_detect_emotion_success(self, api_client, sample_jpeg_bytes):
         """Test successful emotion detection"""
-        with patch("backend.app.client.detect_faces", return_value=mock_rekognition_response):
+        with patch("backend.app._detect_emotion", return_value="HAPPY"):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
 
             assert response.status_code == status.HTTP_200_OK
             data = response.json()
             assert data["emotion"] == "HAPPY"
-            assert data["confidence"] == 98.5
-            assert "all_emotions" in data
-            assert len(data["all_emotions"]) == 3
+            assert data["confidence"] == 100
 
-    def test_detect_emotion_no_face(self, api_client, sample_jpeg_bytes, mock_rekognition_no_face):
+    def test_detect_emotion_no_face(self, api_client, sample_jpeg_bytes):
         """Test emotion detection when no face is detected"""
-        with patch("backend.app.client.detect_faces", return_value=mock_rekognition_no_face):
+        with patch("backend.app._detect_emotion", return_value="NO FACE"):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
 
@@ -83,18 +80,20 @@ class TestEmotionDetection:
         invalid_data = b"This is not an image"
         files = {"file": ("test.txt", io.BytesIO(invalid_data), "text/plain")}
 
-        with patch("backend.app.client.detect_faces", side_effect=Exception("Invalid image")):
-            response = api_client.post("/detect-emotion", files=files)
-            assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        response = api_client.post("/detect-emotion", files=files)
+        assert response.status_code in (
+            status.HTTP_400_BAD_REQUEST,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     def test_detect_emotion_missing_file(self, api_client):
         """Test emotion detection without file upload"""
         response = api_client.post("/detect-emotion")
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_detect_emotion_aws_error(self, api_client, sample_jpeg_bytes):
-        """Test emotion detection when AWS service fails"""
-        with patch("backend.app.client.detect_faces", side_effect=Exception("AWS Service Error")):
+    def test_detect_emotion_model_error(self, api_client, sample_jpeg_bytes):
+        """Test emotion detection when model inference fails"""
+        with patch("backend.app._detect_emotion", side_effect=Exception("Model error")):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -363,11 +362,11 @@ class TestClearEmotions:
 class TestEndToEndWorkflow:
     """End-to-end integration tests"""
 
-    def test_complete_workflow(self, api_client, sample_jpeg_bytes, mock_rekognition_response):
+    def test_complete_workflow(self, api_client, sample_jpeg_bytes):
         """Test complete workflow: detect -> save -> retrieve -> export -> clear"""
 
         # 1. Detect emotion
-        with patch("backend.app.client.detect_faces", return_value=mock_rekognition_response):
+        with patch("backend.app._detect_emotion", return_value="HAPPY"):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
             assert response.status_code == status.HTTP_200_OK

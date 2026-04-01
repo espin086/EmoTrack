@@ -1,28 +1,51 @@
-"""Facial analysis logic for the EmoTrack app."""
+"""Facial analysis logic for the EmoTrack app using on-device ML."""
 
-
-import boto3
+import os
 import cv2
+import numpy as np
+import onnxruntime as ort
 
-client = boto3.client("rekognition")
+EMOTION_LABELS = ["ANGRY", "DISGUSTED", "FEAR", "HAPPY", "SAD", "SURPRISED", "CALM"]
+
+# Load ONNX model
+_model_path = os.path.join(os.path.dirname(__file__), "..", "models", "emotion_model.onnx")
+session = ort.InferenceSession(_model_path)
+
+# Load OpenCV face detector
+_cascade_path = os.path.join(
+    os.path.dirname(cv2.__file__), "data", "haarcascade_frontalface_default.xml"
+)
+face_cascade = cv2.CascadeClassifier(_cascade_path)
 
 
 def detect_emotion(frame):
-    """Detects the emotion of a face in a frame."""
-    # Encode the frame as JPG
-    ret, jpg_data = cv2.imencode(".jpg", frame)
-    if not ret:
-        raise ValueError("Failed to encode frame")
+    """Detects the emotion of a face in a frame using on-device ML.
 
-    # Convert the frame to bytes
-    image_bytes = jpg_data.tobytes()
+    Args:
+        frame: BGR image as numpy array from OpenCV.
 
-    response = client.detect_faces(
-        Image={"Bytes": image_bytes}, Attributes=["EMOTIONS"]
-    )
+    Returns:
+        Emotion label string (e.g. "HAPPY") or "NO FACE" if no face detected.
+    """
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Check if any faces were detected
-    if not response["FaceDetails"]:
+    # Detect faces
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    if len(faces) == 0:
         return "NO FACE"
 
-    return response["FaceDetails"][0]["Emotions"][0]["Type"]
+    # Use the largest face
+    x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
+    face_roi = gray[y : y + h, x : x + w]
+
+    # Preprocess for model: resize to 48x48, normalize
+    face_resized = cv2.resize(face_roi, (48, 48))
+    face_normalized = face_resized.astype(np.float32) / 255.0
+    face_input = face_normalized.reshape(1, 1, 48, 48)
+
+    # Run inference
+    outputs = session.run(None, {"input": face_input})
+    emotion_idx = int(np.argmax(outputs[0], axis=1)[0])
+
+    return EMOTION_LABELS[emotion_idx]

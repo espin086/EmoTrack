@@ -1,6 +1,8 @@
 """EmoTrack"""
 
 
+import os
+import sys
 import streamlit as st
 import cv2
 import sqlite3
@@ -8,8 +10,7 @@ from datetime import datetime
 import pytz
 
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 from logic.facial_analysis import detect_emotion
 
@@ -17,10 +18,24 @@ from logic.facial_analysis import detect_emotion
 BATCH_SIZE = 60
 
 
+def _get_db_path():
+    """Get the database path, using App Support directory on macOS for sandbox compatibility."""
+    if sys.platform == "darwin":
+        app_support = os.path.join(
+            os.path.expanduser("~"), "Library", "Application Support", "EmoTrack"
+        )
+        os.makedirs(app_support, exist_ok=True)
+        return os.path.join(app_support, "emotions.db")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "emotions.db")
+
+
+DB_PATH = _get_db_path()
+
+
 # Function to save a list of emotions to SQLite
 def save_emotions_batch(emotions_batch):
     """Save a list of emotions to SQLite"""
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.executemany(
             "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)", emotions_batch
@@ -29,14 +44,21 @@ def save_emotions_batch(emotions_batch):
 
 
 # Create SQLite database if it doesn't exist
-with sqlite3.connect("emotions.db") as conn:
+with sqlite3.connect(DB_PATH) as conn:
     cursor = conn.cursor()
     cursor.execute(
-        """CREATE TABLE IF NOT EXISTS emotions 
+        """CREATE TABLE IF NOT EXISTS emotions
                   (timestamp INTEGER, emotion TEXT)"""
     )
 
 st.title("EmoTrack - Real-Time Emotion Tracking Dashboard")
+
+# Hide Streamlit chrome for desktop-like experience
+st.markdown("""<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+</style>""", unsafe_allow_html=True)
 
 # Initialize session state
 if "running" not in st.session_state:
@@ -62,7 +84,7 @@ with tab1:
             st.rerun()
 
     # Fetch summary statistics
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         # Total emotions
         total_query = "SELECT COUNT(*) as total FROM emotions"
         total_result = pd.read_sql_query(total_query, conn)
@@ -108,7 +130,7 @@ with tab1:
 
     # Today vs Week Comparison
     st.subheader("Today vs This Week")
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         # Today's emotions
         today_comparison_query = """
         SELECT emotion, COUNT(*) as count
@@ -144,65 +166,32 @@ with tab1:
         today_values = [today_counts.get(e, 0) for e in all_emotions]
         week_values = [week_counts.get(e, 0) for e in all_emotions]
 
-        # Create modern comparison chart
-        fig, ax = plt.subplots(figsize=(14, 6), facecolor='#0E1117')
-        ax.set_facecolor('#0E1117')
-        x = range(len(all_emotions))
-        width = 0.38
-
-        # Modern gradient colors
-        today_color = '#00D9FF'  # Bright cyan
-        week_color = '#7B61FF'   # Purple
-
-        bars1 = ax.bar([i - width/2 for i in x], today_values, width,
-                       label='Today', color=today_color, alpha=0.9,
-                       edgecolor='none', linewidth=0)
-        bars2 = ax.bar([i + width/2 for i in x], week_values, width,
-                       label='Week Average', color=week_color, alpha=0.9,
-                       edgecolor='none', linewidth=0)
-
-        # Modern styling
-        ax.set_xlabel('Emotion', fontsize=13, color='#FFFFFF', fontweight='500')
-        ax.set_ylabel('Distribution (%)', fontsize=13, color='#FFFFFF', fontweight='500')
-        ax.set_title('Today vs Weekly Baseline', fontsize=16, color='#FFFFFF',
-                    fontweight='600', pad=20)
-        ax.set_ylim(0, max(max(today_values) if today_values else 0,
-                          max(week_values) if week_values else 0) * 1.15)
-        ax.set_xticks(x)
-        ax.set_xticklabels(all_emotions, rotation=0, ha='center',
-                          fontsize=11, color='#FAFAFA')
-
-        # Remove spines for cleaner look
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_color('#333333')
-        ax.spines['bottom'].set_color('#333333')
-
-        # Subtle grid
-        ax.grid(True, alpha=0.15, axis='y', color='#444444', linestyle='-', linewidth=0.5)
-        ax.set_axisbelow(True)
-
-        # Modern legend
-        legend = ax.legend(loc='upper right', frameon=True, fancybox=True,
-                          shadow=False, fontsize=11, framealpha=0.9)
-        legend.get_frame().set_facecolor('#1E1E1E')
-        legend.get_frame().set_edgecolor('#333333')
-        for text in legend.get_texts():
-            text.set_color('#FFFFFF')
-
-        # Style tick labels
-        ax.tick_params(axis='y', colors='#CCCCCC', labelsize=10)
-        ax.tick_params(axis='x', colors='#FAFAFA', labelsize=11)
-
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
+        # Create modern comparison chart with Plotly
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            name='Today', x=all_emotions, y=today_values,
+            marker_color='#00D9FF', opacity=0.9,
+        ))
+        fig.add_trace(go.Bar(
+            name='Week Average', x=all_emotions, y=week_values,
+            marker_color='#7B61FF', opacity=0.9,
+        ))
+        fig.update_layout(
+            title='Today vs Weekly Baseline',
+            xaxis_title='Emotion',
+            yaxis_title='Distribution (%)',
+            barmode='group',
+            template='plotly_dark',
+            height=450,
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+        )
+        st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No emotions recorded yet. Start tracking to see comparisons!")
 
     # Monthly Trend
     st.subheader("Monthly Emotion Trends")
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         monthly_query = """
         SELECT
             strftime('%Y-%m', DATETIME(timestamp, 'unixepoch')) as month,
@@ -216,10 +205,6 @@ with tab1:
         monthly_df = pd.read_sql_query(monthly_query, conn)
 
     if len(monthly_df) > 0:
-        # Create modern stacked area chart
-        fig, ax = plt.subplots(figsize=(14, 7), facecolor='#0E1117')
-        ax.set_facecolor('#0E1117')
-
         # Pivot data for stacking
         pivot_df = monthly_df.pivot(index='month', columns='emotion', values='count').fillna(0)
 
@@ -235,56 +220,31 @@ with tab1:
             'SAD': '#5F85DB',       # Deep blue
             'FEAR': '#FF6B9D',      # Pink
             'ANGRY': '#FF5757',     # Bright red
-            'DISGUST': '#A084DC'    # Lavender
+            'DISGUSTED': '#A084DC'  # Lavender
         }
 
-        # Create colors list for available emotions
-        colors = [emotion_colors_modern.get(emotion, '#808080') for emotion in pivot_df_pct.columns]
-
-        # Create smooth stacked area chart with percentages
-        ax.stackplot(range(len(pivot_df_pct)),
-                     [pivot_df_pct[col].values for col in pivot_df_pct.columns],
-                     labels=pivot_df_pct.columns,
-                     colors=colors,
-                     alpha=0.85,
-                     edgecolor='none')
-
-        # Modern styling
-        ax.set_xlabel('Month', fontsize=13, color='#FFFFFF', fontweight='500')
-        ax.set_ylabel('Distribution (%)', fontsize=13, color='#FFFFFF', fontweight='500')
-        ax.set_title('Monthly Emotion Distribution', fontsize=16, color='#FFFFFF',
-                    fontweight='600', pad=20)
-        ax.set_ylim(0, 100)
-        ax.set_xticks(range(len(pivot_df)))
-        ax.set_xticklabels(pivot_df.index, rotation=45, ha='right',
-                          fontsize=10, color='#FAFAFA')
-
-        # Remove top and right spines
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_color('#333333')
-        ax.spines['bottom'].set_color('#333333')
-
-        # Subtle grid
-        ax.grid(True, alpha=0.12, axis='y', color='#444444', linestyle='-', linewidth=0.5)
-        ax.set_axisbelow(True)
-
-        # Modern legend
-        legend = ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
-                          frameon=True, fancybox=True, shadow=False,
-                          fontsize=10, framealpha=0.9)
-        legend.get_frame().set_facecolor('#1E1E1E')
-        legend.get_frame().set_edgecolor('#333333')
-        for text in legend.get_texts():
-            text.set_color('#FFFFFF')
-
-        # Style tick labels
-        ax.tick_params(axis='y', colors='#CCCCCC', labelsize=10)
-        ax.tick_params(axis='x', colors='#FAFAFA', labelsize=10)
-
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
+        # Create stacked area chart with Plotly
+        fig = go.Figure()
+        for emotion in pivot_df_pct.columns:
+            fig.add_trace(go.Scatter(
+                x=pivot_df_pct.index,
+                y=pivot_df_pct[emotion],
+                name=emotion,
+                stackgroup='one',
+                line=dict(width=0.5),
+                fillcolor=emotion_colors_modern.get(emotion, '#808080'),
+                marker_color=emotion_colors_modern.get(emotion, '#808080'),
+            ))
+        fig.update_layout(
+            title='Monthly Emotion Distribution',
+            xaxis_title='Month',
+            yaxis_title='Distribution (%)',
+            yaxis=dict(range=[0, 100]),
+            template='plotly_dark',
+            height=500,
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+        )
+        st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No historical data yet. Keep tracking to see monthly trends!")
 
@@ -378,7 +338,7 @@ with tab2:
     # Export Data
     st.subheader("📥 Export Data")
 
-    with sqlite3.connect("emotions.db") as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         total_query = "SELECT COUNT(*) as total FROM emotions"
         total_result = pd.read_sql_query(total_query, conn)
         total_emotions = total_result['total'].iloc[0] if len(total_result) > 0 else 0
@@ -387,7 +347,7 @@ with tab2:
 
     with col1:
         if total_emotions > 0:
-            with sqlite3.connect("emotions.db") as conn:
+            with sqlite3.connect(DB_PATH) as conn:
                 export_df = pd.read_sql_query("SELECT * FROM emotions", conn)
                 csv = export_df.to_csv(index=False)
                 st.download_button(
@@ -402,7 +362,7 @@ with tab2:
 
     with col2:
         if total_emotions > 0:
-            with sqlite3.connect("emotions.db") as conn:
+            with sqlite3.connect(DB_PATH) as conn:
                 export_df = pd.read_sql_query("SELECT * FROM emotions", conn)
                 json_data = export_df.to_json(orient='records', indent=2)
                 st.download_button(
@@ -422,7 +382,7 @@ with tab2:
         st.warning("This will permanently delete all emotion records!")
         if st.checkbox("I confirm I want to delete all data"):
             if st.button("🗑️ Clear All Emotion Data", type="secondary"):
-                with sqlite3.connect("emotions.db") as conn:
+                with sqlite3.connect(DB_PATH) as conn:
                     cursor = conn.cursor()
                     cursor.execute("DELETE FROM emotions")
                     conn.commit()
@@ -431,4 +391,4 @@ with tab2:
 
 # Footer
 st.markdown("---")
-st.markdown("🎭 EmoTrack - Real-Time Emotion Tracking | Powered by AWS Rekognition")
+st.markdown("EmoTrack - Real-Time Emotion Tracking | Powered by On-Device AI")
