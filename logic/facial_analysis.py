@@ -1,6 +1,5 @@
 """Facial analysis logic for the EmoTrack app."""
 
-
 import boto3
 import cv2
 

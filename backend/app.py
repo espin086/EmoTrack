@@ -38,23 +38,28 @@ client = boto3.client("rekognition")
 DB_PATH = os.environ.get("DB_PATH", "/app/data/emotions.db")
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
+
 # Pydantic models
 class EmotionRecord(BaseModel):
     timestamp: float
     emotion: str
 
+
 class EmotionBatch(BaseModel):
     emotions: List[EmotionRecord]
+
 
 class DateRange(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
+
 
 class EmotionStats(BaseModel):
     date: str
     emotion: str
     count: int
     percentage: float
+
 
 # Database context manager
 @contextmanager
@@ -66,26 +71,28 @@ def get_db():
     finally:
         conn.close()
 
+
 # Initialize database
 def init_db():
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS emotions 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS emotions 
                (id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp REAL,
                 emotion TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"""
-        )
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         conn.commit()
     logger.info("Database initialized")
+
 
 # Initialize database on startup
 init_db()
 
+
 @app.get("/")
 def read_root():
     return {"message": "EmoTrack API is running"}
+
 
 @app.post("/detect-emotion")
 async def detect_emotion(file: UploadFile = File(...)):
@@ -94,27 +101,27 @@ async def detect_emotion(file: UploadFile = File(...)):
         contents = await file.read()
         nparr = np.frombuffer(contents, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        
+
         # Call AWS Rekognition
         response = client.detect_faces(
-            Image={"Bytes": contents}, 
-            Attributes=["EMOTIONS"]
+            Image={"Bytes": contents}, Attributes=["EMOTIONS"]
         )
-        
+
         if not response["FaceDetails"]:
             return {"emotion": "NO FACE", "confidence": 0}
-        
+
         emotions = response["FaceDetails"][0]["Emotions"]
         top_emotion = emotions[0]
-        
+
         return {
             "emotion": top_emotion["Type"],
             "confidence": top_emotion["Confidence"],
-            "all_emotions": emotions
+            "all_emotions": emotions,
         }
     except Exception as e:
         logger.error(f"Error detecting emotion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/emotions/batch")
 async def save_emotions_batch(batch: EmotionBatch):
@@ -124,14 +131,14 @@ async def save_emotions_batch(batch: EmotionBatch):
             cursor = conn.cursor()
             data = [(e.timestamp, e.emotion) for e in batch.emotions]
             cursor.executemany(
-                "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)", 
-                data
+                "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)", data
             )
             conn.commit()
             return {"message": f"Saved {len(batch.emotions)} emotions"}
     except Exception as e:
         logger.error(f"Error saving emotions: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/emotions/daily-stats", response_model=List[EmotionStats])
 async def get_daily_emotion_stats(days: int = 7):
@@ -162,23 +169,26 @@ async def get_daily_emotion_stats(days: int = 7):
             JOIN date_totals dt ON de.date = dt.date
             ORDER BY de.date DESC, de.emotion_count DESC
             """
-            
+
             start_timestamp = (datetime.now() - timedelta(days=days)).timestamp()
             cursor = conn.execute(query, (start_timestamp,))
-            
+
             results = []
             for row in cursor:
-                results.append(EmotionStats(
-                    date=row["date"],
-                    emotion=row["emotion"],
-                    count=row["count"],
-                    percentage=row["percentage"]
-                ))
-            
+                results.append(
+                    EmotionStats(
+                        date=row["date"],
+                        emotion=row["emotion"],
+                        count=row["count"],
+                        percentage=row["percentage"],
+                    )
+                )
+
             return results
     except Exception as e:
         logger.error(f"Error getting daily stats: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/emotions/summary")
 async def get_emotion_summary():
@@ -188,7 +198,7 @@ async def get_emotion_summary():
             # Total emotions recorded
             total_query = "SELECT COUNT(*) as total FROM emotions"
             total_count = conn.execute(total_query).fetchone()["total"]
-            
+
             # Emotion distribution
             distribution_query = """
             SELECT emotion, COUNT(*) as count,
@@ -198,9 +208,11 @@ async def get_emotion_summary():
             ORDER BY count DESC
             """
             cursor = conn.execute(distribution_query, (total_count,))
-            distribution = {row["emotion"]: {"count": row["count"], "percentage": row["percentage"]} 
-                          for row in cursor}
-            
+            distribution = {
+                row["emotion"]: {"count": row["count"], "percentage": row["percentage"]}
+                for row in cursor
+            }
+
             # Most recent emotion
             recent_query = """
             SELECT emotion, timestamp 
@@ -209,7 +221,7 @@ async def get_emotion_summary():
             LIMIT 1
             """
             recent = conn.execute(recent_query).fetchone()
-            
+
             # Date range
             range_query = """
             SELECT 
@@ -218,22 +230,23 @@ async def get_emotion_summary():
             FROM emotions
             """
             date_range = conn.execute(range_query).fetchone()
-            
+
             return {
                 "total_emotions_recorded": total_count,
                 "emotion_distribution": distribution,
                 "most_recent": {
                     "emotion": recent["emotion"] if recent else None,
-                    "timestamp": recent["timestamp"] if recent else None
+                    "timestamp": recent["timestamp"] if recent else None,
                 },
                 "date_range": {
                     "start": date_range["start_date"] if date_range else None,
-                    "end": date_range["end_date"] if date_range else None
-                }
+                    "end": date_range["end_date"] if date_range else None,
+                },
             }
     except Exception as e:
         logger.error(f"Error getting emotion summary: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/emotions/export")
 async def export_emotions(format: str = "json"):
@@ -246,18 +259,21 @@ async def export_emotions(format: str = "json"):
             ORDER BY timestamp DESC
             """
             cursor = conn.execute(query)
-            
+
             data = []
             for row in cursor:
-                data.append({
-                    "timestamp": row["timestamp"],
-                    "emotion": row["emotion"],
-                    "created_at": row["created_at"]
-                })
-            
+                data.append(
+                    {
+                        "timestamp": row["timestamp"],
+                        "emotion": row["emotion"],
+                        "created_at": row["created_at"],
+                    }
+                )
+
             if format == "csv":
                 import csv
                 import io
+
                 output = io.StringIO()
                 if data:
                     writer = csv.DictWriter(output, fieldnames=data[0].keys())
@@ -270,12 +286,13 @@ async def export_emotions(format: str = "json"):
         logger.error(f"Error exporting emotions: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.delete("/emotions/clear")
 async def clear_emotions(confirm: bool = False):
     """Clear all emotion data (requires confirmation)"""
     if not confirm:
         raise HTTPException(status_code=400, detail="Confirmation required")
-    
+
     try:
         with get_db() as conn:
             cursor = conn.cursor()
@@ -286,6 +303,7 @@ async def clear_emotions(confirm: bool = False):
         logger.error(f"Error clearing emotions: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -293,14 +311,16 @@ async def health_check():
         # Check database connection
         with get_db() as conn:
             conn.execute("SELECT 1")
-        
+
         # Check AWS connection (optional, might want to cache this)
         # client.describe_regions()
-        
+
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
