@@ -1,6 +1,8 @@
 """EmoTrack"""
 
 
+import os
+
 import streamlit as st
 import cv2
 import sqlite3
@@ -12,6 +14,19 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from logic.facial_analysis import detect_emotion
+
+
+# Load AWS credentials from st.secrets if available, falling back to
+# environment variables or the default AWS credential chain.
+if "aws" in st.secrets:
+    _key_id = st.secrets["aws"].get("aws_access_key_id", "")
+    _secret = st.secrets["aws"].get("aws_secret_access_key", "")
+    _region = st.secrets["aws"].get("aws_default_region", "")
+    if _key_id:
+        os.environ.setdefault("AWS_ACCESS_KEY_ID", _key_id)
+    if _secret:
+        os.environ.setdefault("AWS_SECRET_ACCESS_KEY", _secret)
+    os.environ.setdefault("AWS_DEFAULT_REGION", _region or "us-east-1")
 
 
 BATCH_SIZE = 60

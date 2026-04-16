@@ -2,6 +2,9 @@
 
 *.db
 
+# Streamlit secrets (contains sensitive credentials - never commit)
+.streamlit/secrets.toml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
