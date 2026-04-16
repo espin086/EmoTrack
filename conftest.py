@@ -1,6 +1,7 @@
 """
 Shared pytest fixtures for EmoTrack tests
 """
+
 import os
 import sqlite3
 import tempfile
@@ -67,8 +68,7 @@ def populated_test_db(test_db: sqlite3.Connection) -> sqlite3.Connection:
     ]
 
     test_db.executemany(
-        "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)",
-        emotions_data
+        "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)", emotions_data
     )
     test_db.commit()
 
@@ -83,8 +83,9 @@ def api_client(test_db_path: str, monkeypatch) -> TestClient:
 
     # Clear any previously imported modules to force reimport with new env
     import sys
-    if 'backend.app' in sys.modules:
-        del sys.modules['backend.app']
+
+    if "backend.app" in sys.modules:
+        del sys.modules["backend.app"]
 
     # Import app after setting environment variable
     from backend.app import app
@@ -129,7 +130,7 @@ def mock_rekognition_response():
                 "Emotions": [
                     {"Type": "HAPPY", "Confidence": 98.5},
                     {"Type": "SAD", "Confidence": 1.2},
-                    {"Type": "CALM", "Confidence": 0.3}
+                    {"Type": "CALM", "Confidence": 0.3},
                 ]
             }
         ]
@@ -139,6 +140,4 @@ def mock_rekognition_response():
 @pytest.fixture
 def mock_rekognition_no_face():
     """Mock AWS Rekognition response with no face detected"""
-    return {
-        "FaceDetails": []
-    }
+    return {"FaceDetails": []}

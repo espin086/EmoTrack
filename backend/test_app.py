@@ -3,6 +3,7 @@ Comprehensive pytest tests for EmoTrack Backend API
 
 Run with: pytest backend/test_app.py -v
 """
+
 import io
 import json
 import time
@@ -37,6 +38,7 @@ class TestHealthCheck:
 
     def test_health_check_with_broken_db(self, api_client, monkeypatch):
         """Test health check with database connection failure"""
+
         def mock_broken_db():
             raise Exception("Database connection failed")
 
@@ -54,9 +56,13 @@ class TestHealthCheck:
 class TestEmotionDetection:
     """Tests for emotion detection endpoint"""
 
-    def test_detect_emotion_success(self, api_client, sample_jpeg_bytes, mock_rekognition_response):
+    def test_detect_emotion_success(
+        self, api_client, sample_jpeg_bytes, mock_rekognition_response
+    ):
         """Test successful emotion detection"""
-        with patch("backend.app.client.detect_faces", return_value=mock_rekognition_response):
+        with patch(
+            "backend.app.client.detect_faces", return_value=mock_rekognition_response
+        ):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
 
@@ -67,9 +73,13 @@ class TestEmotionDetection:
             assert "all_emotions" in data
             assert len(data["all_emotions"]) == 3
 
-    def test_detect_emotion_no_face(self, api_client, sample_jpeg_bytes, mock_rekognition_no_face):
+    def test_detect_emotion_no_face(
+        self, api_client, sample_jpeg_bytes, mock_rekognition_no_face
+    ):
         """Test emotion detection when no face is detected"""
-        with patch("backend.app.client.detect_faces", return_value=mock_rekognition_no_face):
+        with patch(
+            "backend.app.client.detect_faces", return_value=mock_rekognition_no_face
+        ):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
 
@@ -83,7 +93,9 @@ class TestEmotionDetection:
         invalid_data = b"This is not an image"
         files = {"file": ("test.txt", io.BytesIO(invalid_data), "text/plain")}
 
-        with patch("backend.app.client.detect_faces", side_effect=Exception("Invalid image")):
+        with patch(
+            "backend.app.client.detect_faces", side_effect=Exception("Invalid image")
+        ):
             response = api_client.post("/detect-emotion", files=files)
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -94,7 +106,10 @@ class TestEmotionDetection:
 
     def test_detect_emotion_aws_error(self, api_client, sample_jpeg_bytes):
         """Test emotion detection when AWS service fails"""
-        with patch("backend.app.client.detect_faces", side_effect=Exception("AWS Service Error")):
+        with patch(
+            "backend.app.client.detect_faces",
+            side_effect=Exception("AWS Service Error"),
+        ):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -111,7 +126,7 @@ class TestEmotionBatch:
             "emotions": [
                 {"timestamp": time.time(), "emotion": "HAPPY"},
                 {"timestamp": time.time() + 1, "emotion": "SAD"},
-                {"timestamp": time.time() + 2, "emotion": "ANGRY"}
+                {"timestamp": time.time() + 2, "emotion": "ANGRY"},
             ]
         }
 
@@ -145,8 +160,7 @@ class TestEmotionBatch:
         current_time = time.time()
         emotions_data = {
             "emotions": [
-                {"timestamp": current_time + i, "emotion": "HAPPY"}
-                for i in range(1000)
+                {"timestamp": current_time + i, "emotion": "HAPPY"} for i in range(1000)
             ]
         }
 
@@ -254,7 +268,7 @@ class TestEmotionSummary:
                 {"timestamp": time.time(), "emotion": "HAPPY"},
                 {"timestamp": time.time() + 1, "emotion": "HAPPY"},
                 {"timestamp": time.time() + 2, "emotion": "SAD"},
-                {"timestamp": time.time() + 3, "emotion": "ANGRY"}
+                {"timestamp": time.time() + 3, "emotion": "ANGRY"},
             ]
         }
         api_client.post("/emotions/batch", json=emotions_data)
@@ -363,11 +377,15 @@ class TestClearEmotions:
 class TestEndToEndWorkflow:
     """End-to-end integration tests"""
 
-    def test_complete_workflow(self, api_client, sample_jpeg_bytes, mock_rekognition_response):
+    def test_complete_workflow(
+        self, api_client, sample_jpeg_bytes, mock_rekognition_response
+    ):
         """Test complete workflow: detect -> save -> retrieve -> export -> clear"""
 
         # 1. Detect emotion
-        with patch("backend.app.client.detect_faces", return_value=mock_rekognition_response):
+        with patch(
+            "backend.app.client.detect_faces", return_value=mock_rekognition_response
+        ):
             files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
             response = api_client.post("/detect-emotion", files=files)
             assert response.status_code == status.HTTP_200_OK
@@ -378,7 +396,7 @@ class TestEndToEndWorkflow:
             "emotions": [
                 {"timestamp": time.time(), "emotion": detected_emotion},
                 {"timestamp": time.time() + 1, "emotion": "SAD"},
-                {"timestamp": time.time() + 2, "emotion": "HAPPY"}
+                {"timestamp": time.time() + 2, "emotion": "HAPPY"},
             ]
         }
         response = api_client.post("/emotions/batch", json=emotions_data)
@@ -418,7 +436,7 @@ class TestEndToEndWorkflow:
             emotions_data = {
                 "emotions": [
                     {"timestamp": current_time + i * 10, "emotion": "HAPPY"},
-                    {"timestamp": current_time + i * 10 + 1, "emotion": "SAD"}
+                    {"timestamp": current_time + i * 10 + 1, "emotion": "SAD"},
                 ]
             }
             response = api_client.post("/emotions/batch", json=emotions_data)

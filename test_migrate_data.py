@@ -5,6 +5,7 @@ Run with: pytest test_migrate_data.py -v
 
 Note: These tests change the current working directory to test the migration
 """
+
 import os
 import sqlite3
 import tempfile
@@ -59,7 +60,7 @@ class TestMigrateDatabase:
                 ]
                 cursor.executemany(
                     "INSERT INTO emotions (timestamp, emotion) VALUES (?, ?)",
-                    sample_data
+                    sample_data,
                 )
             else:
                 sample_data = [
@@ -100,6 +101,7 @@ class TestMigrateDatabase:
         shutil.copy("emotions.db", "data/emotions.db")
 
         from migrate_data import migrate_database
+
         migrate_database()
 
         captured = capsys.readouterr()
@@ -151,6 +153,7 @@ class TestMigrateDatabase:
         conn.close()
 
         from migrate_data import migrate_database
+
         migrate_database()
 
         # Get migrated data
@@ -209,6 +212,7 @@ class TestMigrateDatabase:
             f.write("This is not a valid SQLite database")
 
         from migrate_data import migrate_database
+
         migrate_database()
 
         captured = capsys.readouterr()
@@ -239,6 +243,7 @@ class TestMigrateDatabase:
 
         # Insert 1000 records
         import time
+
         base_time = time.time()
         emotions = ["HAPPY", "SAD", "ANGRY", "SURPRISED", "CALM"]
         data = [(base_time + i, emotions[i % len(emotions)]) for i in range(1000)]
@@ -247,6 +252,7 @@ class TestMigrateDatabase:
         conn.close()
 
         from migrate_data import migrate_database
+
         migrate_database()
 
         # Verify all records migrated
@@ -276,13 +282,14 @@ class TestMigrateDatabase:
         special_data = [
             (1638360000.0, "HAPPY"),
             (1638360060.0, "test'quote"),
-            (1638360120.0, "test\"doublequote"),
+            (1638360120.0, 'test"doublequote'),
         ]
         cursor.executemany("INSERT INTO emotions VALUES (?, ?)", special_data)
         conn.commit()
         conn.close()
 
         from migrate_data import migrate_database
+
         migrate_database()
 
         # Verify data with special characters migrated correctly
@@ -293,7 +300,7 @@ class TestMigrateDatabase:
         conn.close()
 
         assert "test'quote" in emotions
-        assert "test\"doublequote" in emotions
+        assert 'test"doublequote' in emotions
 
     def test_migrate_preserves_timestamps(self, isolated_dir):
         """Test that timestamps are preserved accurately"""
@@ -320,6 +327,7 @@ class TestMigrateDatabase:
         conn.close()
 
         from migrate_data import migrate_database
+
         migrate_database()
 
         # Verify timestamps preserved

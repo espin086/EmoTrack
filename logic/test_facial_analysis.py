@@ -3,6 +3,7 @@ Unit tests for facial_analysis module
 
 Run with: pytest logic/test_facial_analysis.py -v
 """
+
 import pytest
 import numpy as np
 import cv2
@@ -30,7 +31,7 @@ class TestDetectEmotion:
                     "Emotions": [
                         {"Type": "HAPPY", "Confidence": 98.5},
                         {"Type": "SAD", "Confidence": 1.2},
-                        {"Type": "CALM", "Confidence": 0.3}
+                        {"Type": "CALM", "Confidence": 0.3},
                     ]
                 }
             ]
@@ -45,7 +46,7 @@ class TestDetectEmotion:
                     "Emotions": [
                         {"Type": "SURPRISED", "Confidence": 85.3},
                         {"Type": "HAPPY", "Confidence": 10.2},
-                        {"Type": "CONFUSED", "Confidence": 4.5}
+                        {"Type": "CONFUSED", "Confidence": 4.5},
                     ]
                 }
             ]
@@ -58,19 +59,30 @@ class TestDetectEmotion:
 
     def test_detect_emotion_success(self, sample_frame, mock_rekognition_happy):
         """Test successful emotion detection returns highest confidence emotion"""
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_rekognition_happy):
+        with patch(
+            "logic.facial_analysis.client.detect_faces",
+            return_value=mock_rekognition_happy,
+        ):
             emotion = detect_emotion(sample_frame)
             assert emotion == "HAPPY"
 
-    def test_detect_emotion_multiple_emotions(self, sample_frame, mock_rekognition_multiple_emotions):
+    def test_detect_emotion_multiple_emotions(
+        self, sample_frame, mock_rekognition_multiple_emotions
+    ):
         """Test that detect_emotion returns the emotion with highest confidence"""
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_rekognition_multiple_emotions):
+        with patch(
+            "logic.facial_analysis.client.detect_faces",
+            return_value=mock_rekognition_multiple_emotions,
+        ):
             emotion = detect_emotion(sample_frame)
             assert emotion == "SURPRISED"
 
     def test_detect_emotion_no_face(self, sample_frame, mock_rekognition_no_face):
         """Test emotion detection when no face is detected"""
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_rekognition_no_face):
+        with patch(
+            "logic.facial_analysis.client.detect_faces",
+            return_value=mock_rekognition_no_face,
+        ):
             emotion = detect_emotion(sample_frame)
             assert emotion == "NO FACE"
 
@@ -85,7 +97,10 @@ class TestDetectEmotion:
 
     def test_detect_emotion_aws_error(self, sample_frame):
         """Test emotion detection when AWS service fails"""
-        with patch("logic.facial_analysis.client.detect_faces", side_effect=Exception("AWS Service Error")):
+        with patch(
+            "logic.facial_analysis.client.detect_faces",
+            side_effect=Exception("AWS Service Error"),
+        ):
             with pytest.raises(Exception, match="AWS Service Error"):
                 detect_emotion(sample_frame)
 
@@ -94,14 +109,16 @@ class TestDetectEmotion:
         from botocore.exceptions import ClientError
 
         error_response = {
-            'Error': {
-                'Code': 'ProvisionedThroughputExceededException',
-                'Message': 'Rate exceeded'
+            "Error": {
+                "Code": "ProvisionedThroughputExceededException",
+                "Message": "Rate exceeded",
             }
         }
 
-        with patch("logic.facial_analysis.client.detect_faces",
-                   side_effect=ClientError(error_response, 'DetectFaces')):
+        with patch(
+            "logic.facial_analysis.client.detect_faces",
+            side_effect=ClientError(error_response, "DetectFaces"),
+        ):
             with pytest.raises(ClientError):
                 detect_emotion(sample_frame)
 
@@ -109,42 +126,48 @@ class TestDetectEmotion:
         """Test emotion detection with invalid AWS credentials"""
         from botocore.exceptions import NoCredentialsError
 
-        with patch("logic.facial_analysis.client.detect_faces",
-                   side_effect=NoCredentialsError()):
+        with patch(
+            "logic.facial_analysis.client.detect_faces",
+            side_effect=NoCredentialsError(),
+        ):
             with pytest.raises(NoCredentialsError):
                 detect_emotion(sample_frame)
 
     def test_detect_emotion_all_supported_emotions(self, sample_frame):
         """Test detection of all supported AWS Rekognition emotions"""
         supported_emotions = [
-            "HAPPY", "SAD", "ANGRY", "CONFUSED",
-            "DISGUSTED", "SURPRISED", "CALM", "FEAR"
+            "HAPPY",
+            "SAD",
+            "ANGRY",
+            "CONFUSED",
+            "DISGUSTED",
+            "SURPRISED",
+            "CALM",
+            "FEAR",
         ]
 
         for emotion_type in supported_emotions:
             mock_response = {
                 "FaceDetails": [
-                    {
-                        "Emotions": [
-                            {"Type": emotion_type, "Confidence": 99.0}
-                        ]
-                    }
+                    {"Emotions": [{"Type": emotion_type, "Confidence": 99.0}]}
                 ]
             }
 
-            with patch("logic.facial_analysis.client.detect_faces", return_value=mock_response):
+            with patch(
+                "logic.facial_analysis.client.detect_faces", return_value=mock_response
+            ):
                 detected = detect_emotion(sample_frame)
                 assert detected == emotion_type
 
     def test_detect_emotion_frame_encoding(self, sample_frame):
         """Test that frame is properly encoded to JPEG bytes"""
         mock_response = {
-            "FaceDetails": [
-                {"Emotions": [{"Type": "HAPPY", "Confidence": 95.0}]}
-            ]
+            "FaceDetails": [{"Emotions": [{"Type": "HAPPY", "Confidence": 95.0}]}]
         }
 
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_response) as mock_detect:
+        with patch(
+            "logic.facial_analysis.client.detect_faces", return_value=mock_response
+        ) as mock_detect:
             detect_emotion(sample_frame)
 
             # Verify detect_faces was called
@@ -173,24 +196,22 @@ class TestDetectEmotion:
         cv2.ellipse(frame, (100, 120), (20, 10), 0, 0, 180, (100, 50, 50), -1)
 
         mock_response = {
-            "FaceDetails": [
-                {"Emotions": [{"Type": "CALM", "Confidence": 87.5}]}
-            ]
+            "FaceDetails": [{"Emotions": [{"Type": "CALM", "Confidence": 87.5}]}]
         }
 
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_response):
+        with patch(
+            "logic.facial_analysis.client.detect_faces", return_value=mock_response
+        ):
             emotion = detect_emotion(frame)
             assert emotion == "CALM"
 
     def test_detect_emotion_empty_emotions_list(self, sample_frame):
         """Test emotion detection when face is detected but no emotions returned"""
-        mock_response = {
-            "FaceDetails": [
-                {"Emotions": []}
-            ]
-        }
+        mock_response = {"FaceDetails": [{"Emotions": []}]}
 
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_response):
+        with patch(
+            "logic.facial_analysis.client.detect_faces", return_value=mock_response
+        ):
             # This should raise an IndexError since we try to access Emotions[0]
             with pytest.raises(IndexError):
                 detect_emotion(sample_frame)
@@ -200,11 +221,13 @@ class TestDetectEmotion:
         mock_response = {
             "FaceDetails": [
                 {"Emotions": [{"Type": "HAPPY", "Confidence": 95.0}]},
-                {"Emotions": [{"Type": "SAD", "Confidence": 90.0}]}
+                {"Emotions": [{"Type": "SAD", "Confidence": 90.0}]},
             ]
         }
 
-        with patch("logic.facial_analysis.client.detect_faces", return_value=mock_response):
+        with patch(
+            "logic.facial_analysis.client.detect_faces", return_value=mock_response
+        ):
             emotion = detect_emotion(sample_frame)
             # Should return first face's emotion
             assert emotion == "HAPPY"
@@ -227,7 +250,14 @@ class TestDetectEmotionIntegration:
 
         # Should return either an emotion or "NO FACE"
         valid_emotions = [
-            "HAPPY", "SAD", "ANGRY", "CONFUSED",
-            "DISGUSTED", "SURPRISED", "CALM", "FEAR", "NO FACE"
+            "HAPPY",
+            "SAD",
+            "ANGRY",
+            "CONFUSED",
+            "DISGUSTED",
+            "SURPRISED",
+            "CALM",
+            "FEAR",
+            "NO FACE",
         ]
         assert emotion in valid_emotions

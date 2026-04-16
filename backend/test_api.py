@@ -8,6 +8,7 @@ import json
 
 BASE_URL = "http://localhost:8000"
 
+
 def test_health():
     """Test health endpoint"""
     print("Testing health endpoint...")
@@ -15,6 +16,7 @@ def test_health():
     print(f"Status: {response.status_code}")
     print(f"Response: {response.json()}")
     print()
+
 
 def test_root():
     """Test root endpoint"""
@@ -24,6 +26,7 @@ def test_root():
     print(f"Response: {response.json()}")
     print()
 
+
 def test_emotion_summary():
     """Test emotion summary endpoint"""
     print("Testing emotion summary endpoint...")
@@ -32,18 +35,22 @@ def test_emotion_summary():
     print(f"Response: {json.dumps(response.json(), indent=2)}")
     print()
 
+
 def test_daily_stats():
     """Test daily stats endpoint"""
     print("Testing daily stats endpoint...")
     response = requests.get(f"{BASE_URL}/emotions/daily-stats?days=7")
     print(f"Status: {response.status_code}")
-    print(f"Response: {json.dumps(response.json(), indent=2)[:500]}...")  # Truncate long response
+    print(
+        f"Response: {json.dumps(response.json(), indent=2)[:500]}..."
+    )  # Truncate long response
     print()
+
 
 if __name__ == "__main__":
     print("Backend API Test Script")
     print("=" * 50)
-    
+
     try:
         test_health()
         test_root()
